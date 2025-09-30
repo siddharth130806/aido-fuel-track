@@ -164,7 +164,12 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
   
-  html {
+  html, body {
     @apply dark;
+  }
+  
+  /* Force dark mode */
+  * {
+    color-scheme: dark;
   }
 }
