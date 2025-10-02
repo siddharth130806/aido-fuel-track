@@ -1,25 +1,13 @@
 import { DashboardCard } from "@/components/DashboardCard";
 import { ProgressRing } from "@/components/ProgressRing";
 import { Button } from "@/components/ui/button";
-import { Plus, Droplets, Target, Zap } from "lucide-react";
+import { Plus, Droplets, Zap } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useTodayProgress } from "@/hooks/useTodayProgress";
+import { useTodayFoodLogs } from "@/hooks/useTodayFoodLogs";
 import heroFood from "@/assets/hero-food.jpg";
-
-// Mock data
-const dailyGoals = {
-  calories: { current: 1847, target: 2200 },
-  protein: { current: 98, target: 120 },
-  carbs: { current: 185, target: 220 },
-  fat: { current: 67, target: 85 },
-  water: { current: 6, target: 8 }
-};
-
-const meals = [
-  { name: "Breakfast", calories: 420, logged: true },
-  { name: "Lunch", calories: 650, logged: true },
-  { name: "Dinner", calories: 777, logged: false },
-  { name: "Snacks", calories: 0, logged: false },
-];
+import { useNavigate } from "react-router-dom";
 
 const tips = [
   "💪 Add protein to every meal for better satiety",
@@ -30,9 +18,31 @@ const tips = [
 ];
 
 export default function Home() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [tipIndex] = useState(Math.floor(Math.random() * tips.length));
-  const calorieProgress = (dailyGoals.calories.current / dailyGoals.calories.target) * 100;
-  const waterProgress = (dailyGoals.water.current / dailyGoals.water.target) * 100;
+  
+  const { data: progress } = useTodayProgress(user?.id);
+  const { data: foodLogs } = useTodayFoodLogs(user?.id);
+
+  const mealTypes = ["Breakfast", "Lunch", "Dinner", "Snacks"];
+  const meals = mealTypes.map(mealType => {
+    const mealLogs = foodLogs?.filter(log => log.meal_type === mealType) || [];
+    const calories = mealLogs.reduce((sum, log) => sum + log.calories, 0);
+    return {
+      name: mealType,
+      calories,
+      logged: mealLogs.length > 0
+    };
+  });
+
+  const caloriesConsumed = progress?.calories_consumed || 0;
+  const caloriesTarget = progress?.calories_target || 2200;
+  const proteinGrams = progress?.protein_grams || 0;
+  const waterGlasses = progress?.water_glasses || 0;
+  
+  const calorieProgress = (caloriesConsumed / caloriesTarget) * 100;
+  const waterProgress = (waterGlasses / 8) * 100;
 
   return (
     <div className="space-y-6">
@@ -59,10 +69,10 @@ export default function Home() {
             <ProgressRing progress={calorieProgress} size={100} color="primary">
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary">
-                  {dailyGoals.calories.current}
+                  {caloriesConsumed}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  /{dailyGoals.calories.target} cal
+                  /{caloriesTarget} cal
                 </div>
               </div>
             </ProgressRing>
@@ -74,7 +84,7 @@ export default function Home() {
               <div className="text-center">
                 <Droplets className="w-6 h-6 text-accent mx-auto mb-1" />
                 <div className="text-sm font-bold text-accent">
-                  {dailyGoals.water.current}/{dailyGoals.water.target}
+                  {waterGlasses}/8
                 </div>
               </div>
             </ProgressRing>
@@ -83,34 +93,14 @@ export default function Home() {
         </div>
 
         {/* Macros */}
-        <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-border/30">
+        <div className="grid grid-cols-1 gap-4 mt-6 pt-6 border-t border-border/30">
           <div className="text-center">
-            <div className="text-lg font-semibold text-success">{dailyGoals.protein.current}g</div>
-            <div className="text-xs text-muted-foreground">Protein ({dailyGoals.protein.target}g)</div>
+            <div className="text-lg font-semibold text-success">{proteinGrams}g</div>
+            <div className="text-xs text-muted-foreground">Protein (target: 120g)</div>
             <div className="w-full bg-muted rounded-full h-2 mt-1">
               <div 
                 className="bg-success h-2 rounded-full transition-all duration-500"
-                style={{ width: `${(dailyGoals.protein.current / dailyGoals.protein.target) * 100}%` }}
-              />
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-semibold text-warning">{dailyGoals.carbs.current}g</div>
-            <div className="text-xs text-muted-foreground">Carbs ({dailyGoals.carbs.target}g)</div>
-            <div className="w-full bg-muted rounded-full h-2 mt-1">
-              <div 
-                className="bg-warning h-2 rounded-full transition-all duration-500"
-                style={{ width: `${(dailyGoals.carbs.current / dailyGoals.carbs.target) * 100}%` }}
-              />
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-semibold text-accent">{dailyGoals.fat.current}g</div>
-            <div className="text-xs text-muted-foreground">Fat ({dailyGoals.fat.target}g)</div>
-            <div className="w-full bg-muted rounded-full h-2 mt-1">
-              <div 
-                className="bg-accent h-2 rounded-full transition-all duration-500"
-                style={{ width: `${(dailyGoals.fat.current / dailyGoals.fat.target) * 100}%` }}
+                style={{ width: `${Math.min((proteinGrams / 120) * 100, 100)}%` }}
               />
             </div>
           </div>
@@ -142,7 +132,11 @@ export default function Home() {
           ))}
         </div>
         
-        <Button className="w-full mt-4 bg-gradient-primary hover:shadow-glow" size="lg">
+        <Button 
+          className="w-full mt-4 bg-gradient-primary hover:shadow-glow" 
+          size="lg"
+          onClick={() => navigate("/log")}
+        >
           <Plus className="w-5 h-5 mr-2" />
           Quick Log Food
         </Button>
