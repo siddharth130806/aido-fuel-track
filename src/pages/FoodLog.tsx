@@ -4,6 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Camera, QrCode, Clock, Star } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useTodayFoodLogs } from "@/hooks/useTodayFoodLogs";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Mock data
 const recentFoods = [
@@ -23,14 +28,71 @@ const popularFoods = [
 ];
 
 export default function FoodLog() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMeal, setSelectedMeal] = useState("breakfast");
+  const [isAdding, setIsAdding] = useState(false);
 
   const meals = ["breakfast", "lunch", "dinner", "snacks"];
 
   const filteredFoods = popularFoods.filter(food =>
     food.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const addFoodLog = async (foodName: string, calories: number, brand?: string) => {
+    if (!user) {
+      toast.error("Please sign in to log food");
+      return;
+    }
+
+    setIsAdding(true);
+    try {
+      const { error } = await supabase.from("food_logs").insert({
+        user_id: user.id,
+        food_name: foodName,
+        calories: calories,
+        brand: brand || null,
+        meal_type: selectedMeal,
+        logged_at: new Date().toISOString(),
+      });
+
+      if (error) throw error;
+
+      // Update progress data
+      const today = new Date().toISOString().split("T")[0];
+      const { data: existingProgress } = await supabase
+        .from("progress_data")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("date", today)
+        .maybeSingle();
+
+      if (existingProgress) {
+        await supabase
+          .from("progress_data")
+          .update({
+            calories_consumed: existingProgress.calories_consumed + calories,
+          })
+          .eq("id", existingProgress.id);
+      } else {
+        await supabase.from("progress_data").insert({
+          user_id: user.id,
+          date: today,
+          calories_consumed: calories,
+          calories_target: 2200,
+        });
+      }
+
+      toast.success(`Added ${foodName} to ${selectedMeal}!`);
+      queryClient.invalidateQueries({ queryKey: ["today-food-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["today-progress"] });
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add food");
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -108,7 +170,13 @@ export default function FoodLog() {
                     <Badge variant="secondary" className="text-xs">{food.category}</Badge>
                   </div>
                 </div>
-                <Button size="sm">Add</Button>
+                <Button 
+                  size="sm" 
+                  onClick={() => addFoodLog(food.name, food.calories)}
+                  disabled={isAdding}
+                >
+                  {isAdding ? "Adding..." : "Add"}
+                </Button>
               </div>
             ))}
           </div>
@@ -127,7 +195,14 @@ export default function FoodLog() {
                       <p className="font-medium text-foreground">{food.name}</p>
                       <p className="text-sm text-muted-foreground">{food.calories} cal • {food.brand}</p>
                     </div>
-                    <Button size="sm" variant="outline">Add</Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => addFoodLog(food.name, food.calories, food.brand)}
+                      disabled={isAdding}
+                    >
+                      {isAdding ? "Adding..." : "Add"}
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -144,8 +219,14 @@ export default function FoodLog() {
                   <div key={index} className="p-3 bg-gradient-fresh rounded-xl text-center hover:shadow-soft transition-all">
                     <p className="font-medium text-foreground text-sm">{food.name}</p>
                     <p className="text-xs text-muted-foreground">{food.calories} cal</p>
-                    <Button size="sm" variant="outline" className="mt-2 h-7 text-xs">
-                      Add
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="mt-2 h-7 text-xs"
+                      onClick={() => addFoodLog(food.name, food.calories)}
+                      disabled={isAdding}
+                    >
+                      {isAdding ? "..." : "Add"}
                     </Button>
                   </div>
                 ))}
