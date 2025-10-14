@@ -125,6 +125,7 @@ export default function Home() {
                 size="sm" 
                 variant={meal.logged ? "outline" : "default"}
                 className="min-w-[60px]"
+                onClick={() => navigate("/log", { state: { mealType: meal.name } })}
               >
                 {meal.logged ? 'Edit' : 'Add'}
               </Button>

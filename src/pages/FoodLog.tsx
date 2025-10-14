@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Camera, QrCode, Clock, Star } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTodayFoodLogs } from "@/hooks/useTodayFoodLogs";
@@ -30,9 +31,17 @@ const popularFoods = [
 export default function FoodLog() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMeal, setSelectedMeal] = useState("breakfast");
   const [isAdding, setIsAdding] = useState(false);
+
+  // Set meal type from navigation state
+  useEffect(() => {
+    if (location.state?.mealType) {
+      setSelectedMeal(location.state.mealType.toLowerCase());
+    }
+  }, [location.state]);
 
   const meals = ["breakfast", "lunch", "dinner", "snacks"];
 
