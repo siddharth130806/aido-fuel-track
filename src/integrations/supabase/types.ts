@@ -89,6 +89,45 @@ export type Database = {
         }
         Relationships: []
       }
+      foods: {
+        Row: {
+          brand: string | null
+          calories: number
+          carbs: number | null
+          category: string
+          created_at: string | null
+          fats: number | null
+          id: string
+          name: string
+          protein: number | null
+          serving_size: string | null
+        }
+        Insert: {
+          brand?: string | null
+          calories: number
+          carbs?: number | null
+          category: string
+          created_at?: string | null
+          fats?: number | null
+          id?: string
+          name: string
+          protein?: number | null
+          serving_size?: string | null
+        }
+        Update: {
+          brand?: string | null
+          calories?: number
+          carbs?: number | null
+          category?: string
+          created_at?: string | null
+          fats?: number | null
+          id?: string
+          name?: string
+          protein?: number | null
+          serving_size?: string | null
+        }
+        Relationships: []
+      }
       meal_plans: {
         Row: {
           calories: number
@@ -211,7 +250,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      foods_search: {
+        Row: {
+          brand: string | null
+          calories: number | null
+          carbs: number | null
+          category: string | null
+          fats: number | null
+          id: string | null
+          name: string | null
+          protein: number | null
+          search_vector: unknown | null
+          serving_size: string | null
+        }
+        Insert: {
+          brand?: string | null
+          calories?: number | null
+          carbs?: number | null
+          category?: string | null
+          fats?: number | null
+          id?: string | null
+          name?: string | null
+          protein?: number | null
+          search_vector?: never
+          serving_size?: string | null
+        }
+        Update: {
+          brand?: string | null
+          calories?: number | null
+          carbs?: number | null
+          category?: string | null
+          fats?: number | null
+          id?: string | null
+          name?: string | null
+          protein?: number | null
+          search_vector?: never
+          serving_size?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

@@ -9,24 +9,7 @@ import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTodayFoodLogs } from "@/hooks/useTodayFoodLogs";
-import { useQueryClient } from "@tanstack/react-query";
-
-// Mock data
-const recentFoods = [
-  { name: "Greek Yogurt", calories: 130, brand: "Chobani" },
-  { name: "Banana", calories: 105, brand: "Fresh" },
-  { name: "Oatmeal", calories: 150, brand: "Quaker" },
-  { name: "Chicken Breast", calories: 185, brand: "Fresh" },
-];
-
-const popularFoods = [
-  { name: "Apple", calories: 95, category: "Fruits" },
-  { name: "Avocado", calories: 234, category: "Fruits" },
-  { name: "Eggs", calories: 155, category: "Protein" },
-  { name: "Brown Rice", calories: 216, category: "Grains" },
-  { name: "Salmon", calories: 206, category: "Protein" },
-  { name: "Spinach", calories: 23, category: "Vegetables" },
-];
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 export default function FoodLog() {
   const { user } = useAuth();
@@ -45,8 +28,44 @@ export default function FoodLog() {
 
   const meals = ["breakfast", "lunch", "dinner", "snacks"];
 
-  const filteredFoods = popularFoods.filter(food =>
-    food.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Fetch foods from database
+  const { data: allFoods = [] } = useQuery({
+    queryKey: ["foods"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("foods")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch recent foods for this user
+  const { data: recentFoodLogs = [] } = useQuery({
+    queryKey: ["recent-foods", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("food_logs")
+        .select("food_name, calories, brand")
+        .eq("user_id", user.id)
+        .order("logged_at", { ascending: false })
+        .limit(4);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const filteredFoods = searchQuery
+    ? allFoods.filter((food) =>
+        food.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
+
+  const popularFoods = allFoods.filter((f) => 
+    ["Apple", "Banana", "Chicken Breast", "Brown Rice", "Eggs", "Greek Yogurt"].includes(f.name)
   );
 
   const addFoodLog = async (foodName: string, calories: number, brand?: string) => {
@@ -198,16 +217,16 @@ export default function FoodLog() {
                 <h4 className="font-medium text-foreground">Recently Added</h4>
               </div>
               <div className="space-y-2">
-                {recentFoods.map((food, index) => (
+                {recentFoodLogs.map((food, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl">
                     <div>
-                      <p className="font-medium text-foreground">{food.name}</p>
-                      <p className="text-sm text-muted-foreground">{food.calories} cal • {food.brand}</p>
+                      <p className="font-medium text-foreground">{food.food_name}</p>
+                      <p className="text-sm text-muted-foreground">{food.calories} cal{food.brand ? ` • ${food.brand}` : ''}</p>
                     </div>
                     <Button 
                       size="sm" 
                       variant="outline"
-                      onClick={() => addFoodLog(food.name, food.calories, food.brand)}
+                      onClick={() => addFoodLog(food.food_name, food.calories, food.brand)}
                       disabled={isAdding}
                     >
                       {isAdding ? "Adding..." : "Add"}
@@ -224,15 +243,16 @@ export default function FoodLog() {
                 <h4 className="font-medium text-foreground">Popular Foods</h4>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                {popularFoods.slice(0, 6).map((food, index) => (
+                {popularFoods.map((food, index) => (
                   <div key={index} className="p-3 bg-gradient-fresh rounded-xl text-center hover:shadow-soft transition-all">
                     <p className="font-medium text-foreground text-sm">{food.name}</p>
                     <p className="text-xs text-muted-foreground">{food.calories} cal</p>
+                    {food.category && <Badge variant="secondary" className="text-xs mt-1">{food.category}</Badge>}
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      className="mt-2 h-7 text-xs"
-                      onClick={() => addFoodLog(food.name, food.calories)}
+                      className="mt-2 h-7 text-xs w-full"
+                      onClick={() => addFoodLog(food.name, food.calories, food.brand)}
                       disabled={isAdding}
                     >
                       {isAdding ? "..." : "Add"}
