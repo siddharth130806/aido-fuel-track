@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTodayFoodLogs } from "@/hooks/useTodayFoodLogs";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { foodLogSchema } from "@/lib/validations";
 
 export default function FoodLog() {
   const { user } = useAuth();
@@ -74,14 +75,28 @@ export default function FoodLog() {
       return;
     }
 
+    // Validate food log data
+    const validationResult = foodLogSchema.safeParse({
+      food_name: foodName,
+      calories,
+      brand,
+      meal_type: selectedMeal,
+    });
+
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast.error(firstError.message);
+      return;
+    }
+
     setIsAdding(true);
     try {
       const { error } = await supabase.from("food_logs").insert({
         user_id: user.id,
-        food_name: foodName,
-        calories: calories,
-        brand: brand || null,
-        meal_type: selectedMeal,
+        food_name: validationResult.data.food_name,
+        calories: validationResult.data.calories,
+        brand: validationResult.data.brand || null,
+        meal_type: validationResult.data.meal_type,
         logged_at: new Date().toISOString(),
       });
 

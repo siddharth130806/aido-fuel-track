@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Utensils } from "lucide-react";
+import { loginSchema, signupSchema } from "@/lib/validations";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,20 +21,37 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      // Validate inputs using Zod schemas
       if (isLogin) {
+        const validationResult = loginSchema.safeParse({ email, password });
+        if (!validationResult.success) {
+          const firstError = validationResult.error.errors[0];
+          toast.error(firstError.message);
+          setLoading(false);
+          return;
+        }
+
         const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: validationResult.data.email,
+          password: validationResult.data.password,
         });
         if (error) throw error;
         toast.success("Welcome back!");
         navigate("/");
       } else {
+        const validationResult = signupSchema.safeParse({ email, password, fullName });
+        if (!validationResult.success) {
+          const firstError = validationResult.error.errors[0];
+          toast.error(firstError.message);
+          setLoading(false);
+          return;
+        }
+
         const { error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: validationResult.data.email,
+          password: validationResult.data.password,
           options: {
-            data: { full_name: fullName },
+            data: { full_name: validationResult.data.fullName },
             emailRedirectTo: `${window.location.origin}/`,
           },
         });
