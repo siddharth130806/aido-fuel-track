@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DashboardCard } from "@/components/DashboardCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,11 +8,14 @@ import { useProfile } from "@/hooks/useProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { toast } from "sonner";
+import { EditProfileDialog } from "@/components/EditProfileDialog";
+import { EditPreferencesDialog } from "@/components/EditPreferencesDialog";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile(user?.id);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [editPrefsOpen, setEditPrefsOpen] = useState(false);
   
   const { data: achievements } = useQuery({
     queryKey: ["achievements", user?.id],
@@ -39,6 +43,7 @@ export default function Profile() {
 
   const unlockedAchievements = achievements?.filter(a => a.unlocked) || [];
   const joinDate = profile?.created_at ? format(new Date(profile.created_at), "MMMM yyyy") : "Recently";
+  
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -103,7 +108,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full mt-4" onClick={() => toast.info("Profile editing coming soon!")}>
+        <Button variant="outline" className="w-full mt-4" onClick={() => setEditProfileOpen(true)}>
           <Settings className="w-4 h-4 mr-2" />
           Edit Profile
         </Button>
@@ -158,7 +163,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full mt-4" onClick={() => toast.info("Preference updates coming soon!")}>
+        <Button variant="outline" className="w-full mt-4" onClick={() => setEditPrefsOpen(true)}>
           <Heart className="w-4 h-4 mr-2" />
           Update Preferences
         </Button>
@@ -206,6 +211,24 @@ export default function Profile() {
           <span>Sign Out</span>
         </Button>
       </DashboardCard>
+
+      {/* Dialogs */}
+      {user && (
+        <>
+          <EditProfileDialog
+            open={editProfileOpen}
+            onOpenChange={setEditProfileOpen}
+            userId={user.id}
+            profile={profile || null}
+          />
+          <EditPreferencesDialog
+            open={editPrefsOpen}
+            onOpenChange={setEditPrefsOpen}
+            userId={user.id}
+            profile={profile || null}
+          />
+        </>
+      )}
     </div>
   );
 }
