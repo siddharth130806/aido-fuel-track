@@ -61,6 +61,56 @@ export const foodLogSchema = z.object({
     .optional(),
 });
 
+// Profile validation schema
+export const profileSchema = z.object({
+  full_name: z
+    .string()
+    .trim()
+    .max(100, { message: "Name must be less than 100 characters" })
+    .optional()
+    .or(z.literal("")),
+  age: z
+    .number()
+    .int({ message: "Age must be a whole number" })
+    .min(1, { message: "Age must be at least 1" })
+    .max(150, { message: "Age must be less than 150" })
+    .optional()
+    .nullable(),
+  height: z
+    .number()
+    .int({ message: "Height must be a whole number" })
+    .min(30, { message: "Height must be at least 30 cm" })
+    .max(300, { message: "Height must be less than 300 cm" })
+    .optional()
+    .nullable(),
+  weight: z
+    .number()
+    .min(1, { message: "Weight must be at least 1 kg" })
+    .max(500, { message: "Weight must be less than 500 kg" })
+    .optional()
+    .nullable(),
+  goal: z
+    .string()
+    .trim()
+    .max(100, { message: "Goal must be less than 100 characters" })
+    .optional()
+    .or(z.literal("")),
+  activity_level: z
+    .string()
+    .trim()
+    .max(50, { message: "Activity level must be less than 50 characters" })
+    .optional()
+    .or(z.literal("")),
+});
+
+export const preferencesSchema = z.object({
+  dietary_preferences: z.array(z.string().max(50)).max(20).optional(),
+  allergies: z.array(z.string().max(50)).max(20).optional(),
+  favorite_cuisines: z.array(z.string().max(50)).max(20).optional(),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type FoodLogInput = z.infer<typeof foodLogSchema>;
+export type ProfileInput = z.infer<typeof profileSchema>;
+export type PreferencesInput = z.infer<typeof preferencesSchema>;
