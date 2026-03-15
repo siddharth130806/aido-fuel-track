@@ -167,6 +167,7 @@ export default function FoodLog() {
           <Button 
             className="h-16 bg-gradient-primary hover:shadow-glow flex items-center justify-start px-6"
             size="lg"
+            onClick={() => toast.info("Photo recognition coming soon!")}
           >
             <Camera className="w-6 h-6 mr-4" />
             <div className="text-left">
@@ -179,6 +180,7 @@ export default function FoodLog() {
             variant="outline"
             className="h-16 flex items-center justify-start px-6 hover:bg-accent-light"
             size="lg"
+            onClick={() => toast.info("Barcode scanning coming soon!")}
           >
             <QrCode className="w-6 h-6 mr-4 text-accent" />
             <div className="text-left">

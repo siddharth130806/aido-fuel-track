@@ -3,6 +3,7 @@ import { ProgressRing } from "@/components/ProgressRing";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, TrendingDown, Award, Target, Calendar } from "lucide-react";
+import { toast } from "sonner";
 
 // Mock data
 const weeklyStats = {
@@ -32,7 +33,7 @@ const weeklyData = [
 
 export default function Progress() {
   const totalDeficit = weeklyData.reduce((sum, day) => sum + Math.abs(day.deficit), 0);
-  const avgAccuracy = 100 - (totalDeficit / (weeklyData.length * 22)); // 22 = 1% of 2200
+  const avgAccuracy = 100 - (totalDeficit / (weeklyData.length * 22));
 
   return (
     <div className="space-y-6">
@@ -80,7 +81,7 @@ export default function Progress() {
       {/* Daily Breakdown */}
       <DashboardCard title="Daily Calorie Tracking">
         <div className="space-y-3">
-          {weeklyData.map((day, index) => {
+          {weeklyData.map((day) => {
             const percentage = (day.calories / day.target) * 100;
             const isOver = day.calories > day.target;
             
@@ -178,7 +179,7 @@ export default function Progress() {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full mt-4">
+        <Button variant="outline" className="w-full mt-4" onClick={() => toast.info("Goal adjustment coming soon!")}>
           Adjust Goals
         </Button>
       </DashboardCard>
