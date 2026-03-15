@@ -260,7 +260,7 @@ export type Database = {
           id: string | null
           name: string | null
           protein: number | null
-          search_vector: unknown | null
+          search_vector: unknown
           serving_size: string | null
         }
         Insert: {
