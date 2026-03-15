@@ -7,6 +7,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
@@ -102,7 +103,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full mt-4">
+        <Button variant="outline" className="w-full mt-4" onClick={() => toast.info("Profile editing coming soon!")}>
           <Settings className="w-4 h-4 mr-2" />
           Edit Profile
         </Button>
@@ -157,7 +158,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full mt-4">
+        <Button variant="outline" className="w-full mt-4" onClick={() => toast.info("Preference updates coming soon!")}>
           <Heart className="w-4 h-4 mr-2" />
           Update Preferences
         </Button>

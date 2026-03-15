@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Users, ChefHat, ShoppingCart, Repeat } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 // Mock data
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -94,7 +95,7 @@ export default function MealPlan() {
                     </div>
                   </div>
                 </div>
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => toast.info("Meal swapping coming soon!")}>
                   <Repeat className="w-4 h-4 mr-1" />
                   Swap
                 </Button>
@@ -103,11 +104,11 @@ export default function MealPlan() {
           </div>
 
           <div className="flex space-x-3 mt-6">
-            <Button className="flex-1 bg-gradient-primary">
+            <Button className="flex-1 bg-gradient-primary" onClick={() => toast.info("Grocery list coming soon!")}>
               <ShoppingCart className="w-4 h-4 mr-2" />
               Add to Grocery List
             </Button>
-            <Button variant="outline" className="flex-1">
+            <Button variant="outline" className="flex-1" onClick={() => toast.info("Plan generation coming soon!")}>
               Generate New Plan
             </Button>
           </div>
@@ -125,7 +126,7 @@ export default function MealPlan() {
             <div key={index} className="p-4 border border-border/50 rounded-xl hover:shadow-soft transition-all">
               <div className="flex items-start justify-between mb-2">
                 <h4 className="font-semibold text-foreground">{suggestion.name}</h4>
-                <Button size="sm" variant="ghost" className="text-primary hover:bg-primary-light">
+                <Button size="sm" variant="ghost" className="text-primary hover:bg-primary-light" onClick={() => toast.success(`Added ${suggestion.name} to your plan!`)}>
                   Add
                 </Button>
               </div>
@@ -150,7 +151,7 @@ export default function MealPlan() {
           ))}
         </div>
 
-        <Button variant="outline" className="w-full mt-4">
+        <Button variant="outline" className="w-full mt-4" onClick={() => toast.info("More suggestions coming soon!")}>
           Get More Suggestions
         </Button>
       </DashboardCard>
@@ -158,22 +159,22 @@ export default function MealPlan() {
       {/* Quick Actions */}
       <DashboardCard title="Quick Actions">
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" className="h-16 flex-col space-y-1">
+          <Button variant="outline" className="h-16 flex-col space-y-1" onClick={() => toast.info("Next week planning coming soon!")}>
             <Calendar className="w-5 h-5 text-primary" />
             <span className="text-sm">Plan Next Week</span>
           </Button>
           
-          <Button variant="outline" className="h-16 flex-col space-y-1">
+          <Button variant="outline" className="h-16 flex-col space-y-1" onClick={() => toast.info("Copy feature coming soon!")}>
             <Repeat className="w-5 h-5 text-accent" />
             <span className="text-sm">Copy Last Week</span>
           </Button>
           
-          <Button variant="outline" className="h-16 flex-col space-y-1">
+          <Button variant="outline" className="h-16 flex-col space-y-1" onClick={() => toast.info("Grocery list coming soon!")}>
             <ShoppingCart className="w-5 h-5 text-success" />
             <span className="text-sm">View Grocery List</span>
           </Button>
           
-          <Button variant="outline" className="h-16 flex-col space-y-1">
+          <Button variant="outline" className="h-16 flex-col space-y-1" onClick={() => toast.info("Recipe ideas coming soon!")}>
             <ChefHat className="w-5 h-5 text-warning" />
             <span className="text-sm">Recipe Ideas</span>
           </Button>
